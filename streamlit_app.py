@@ -119,34 +119,6 @@ def main():
                         'bread_choice': bread_choice,
                         'dessert_choice': dessert_choice
                     }
-
-        # Dessert section
-        st.markdown("### 🍰 Optional Desserts")
-        st.markdown("Select any desserts you'd like to add to your order")
-        
-        dessert_prices = {
-            'Gulab Jamun': 20,
-            'Rasgulla': 20,
-            'Ice Cream': 30,
-            'Kheer': 25
-        }
-        
-        selected_desserts = {}
-        dessert_cols = st.columns(2)
-        for i, (dessert, price) in enumerate(dessert_prices.items()):
-            with dessert_cols[i % 2]:
-                quantity = st.number_input(
-                    f"{dessert} (₹{price})",
-                    min_value=0,
-                    max_value=10,
-                    value=0,
-                    key=f"dessert_{dessert}"
-                )
-                if quantity > 0:
-                    selected_desserts[dessert] = {
-                        'quantity': quantity,
-                        'price': price
-                    }
         
         col1, col2 = st.columns(2)
 
