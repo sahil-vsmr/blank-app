@@ -48,6 +48,7 @@ def append_to_gsheet(data_dict, sheet_name='Sheet1'):
 def main():
 
     st.markdown("### 🍱 Place Your Tiffin Order")
+    st.markdown("Healthy Food Bank's (HFB) Vishmukt Tiffin Service - Head Chef- Dr. Pratibha Kolte Tai | Communication - Shubham Shelke (8484846121)")
     st.markdown("Fill out the form below to place your tiffin order for the week.")
 
     st.markdown("### Select Dates for Tiffin Service *")
@@ -71,22 +72,52 @@ def main():
             for date_info in selected_days:
                 with st.container():
                     st.markdown(f"**{date_info['date']} ({date_info['day']})**")
-                    half_tiffin_count_col, full_tiffin_count_col = st.columns(2)
+                    bread_choices = ['Chapati', 'Bhakri']
+                    ukdiche_modak_prices = ['4 - Rs. 200', '6 - Rs. 300', '8 - Rs. 400']
+                    half_tiffin_count_col, full_tiffin_count_col, zero_masala_tiffin_check, bread_choice, dessert_choice = st.columns(5)
                     with half_tiffin_count_col:
                         half_tiffin_count = st.number_input(
                             f"Number of Half Tiffins for {date_info['date']}",
                             min_value=0, max_value=20, step=1,
-                            key=f"half_tiffins_{date_info['full_date']}"
+                            key=f"half_tiffins_{date_info['full_date']}",
+                            help="Half Tiffin includes: 2 rotis, 1 sabzi, dal, and rice."
                         )
                     with full_tiffin_count_col:
                         full_tiffin_count = st.number_input(
                             f"Number of Full Tiffins for {date_info['date']}",
                             min_value=0, max_value=20, step=1,
-                            key=f"full_tiffins_{date_info['full_date']}"
+                            key=f"full_tiffins_{date_info['full_date']}",
+                            help="Full Tiffin includes: 4 rotis, 2 sabzis, dal, rice, salad, and pickle."
                         )
+                    with zero_masala_tiffin_check:
+                        zero_masala_tiffin = st.toggle(
+                            f"Want Zero Masala Tiffin?",
+                            value=False,
+                            key=f"zero_masala_tiffin_{date_info['full_date']}"
+                        )
+                    with bread_choice: 
+                        bread_choice = st.selectbox(
+                            f"Choose an option for bread",
+                            options=bread_choices,
+                            key=f"bread_choice_{date_info['full_date']}",
+                            help="Chapati includes: 2 rotis, 1 sabzi, dal, and rice."
+                        )
+                    with dessert_choice:
+                        if 'Friday' in date_info['day']:
+                            dessert_choice = st.selectbox(
+                                f"Ukdiche Modak (Pcs.)",
+                                options=ukdiche_modak_prices,
+                                key=f"dessert_choice_{date_info['full_date']}",
+                                help="Choose an option for dessert",
+                            )
+                        else:
+                            dessert_choice = "NA"
                     per_date_tiffin[date_info['full_date']] = {
                         'half_tiffin_count': half_tiffin_count,
-                        'full_tiffin_count': full_tiffin_count
+                        'full_tiffin_count': full_tiffin_count,
+                        'zero_masala_tiffin': zero_masala_tiffin,
+                        'bread_choice': bread_choice,
+                        'dessert_choice': dessert_choice
                     }
 
         # Dessert section
@@ -159,10 +190,22 @@ def main():
                 pd = per_date_tiffin[date_info['full_date']]
                 half_tiffin_count = pd['half_tiffin_count']
                 full_tiffin_count = pd['full_tiffin_count']
+                zero_masala_tiffin = pd['zero_masala_tiffin']
+                bread_choice = pd['bread_choice']
+                dessert_choice = pd['dessert_choice']
                 #tiffin_type = pd['tiffin_type']
                 #tiffins = pd['tiffins']
                 total_tiffin_price += half_tiffin_count * half_price + full_tiffin_count * full_price
-                tiffin_details.append(f"{date_info['date']} ({date_info['day']}): {half_tiffin_count} half tiffins and {full_tiffin_count} full tiffins")
+                tiffin_details.append(
+                    f"""
+                    {date_info['date']} ({date_info['day']}):
+                    {half_tiffin_count} half tiffins,
+                    {full_tiffin_count} full tiffins,
+                    Zero masala tiffin: {zero_masala_tiffin},
+                    Bread choice: {bread_choice},
+                    Dessert choice: {dessert_choice}
+                    """
+                )
             total_dessert_price = sum(d['quantity'] * d['price'] for d in selected_desserts.values())
             total_price = total_tiffin_price + total_dessert_price
             
