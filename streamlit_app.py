@@ -2,6 +2,8 @@ from datetime import datetime, timedelta
 import streamlit as st
 import gspread
 from google.oauth2.service_account import Credentials
+from PIL import Image
+
 
 # st.title("🎈 My new app v2")
 # st.write(
@@ -131,6 +133,13 @@ def main():
         with col2:
             instructions = st.text_area('Special Instructions', max_chars=500,
                                       help="Any special dietary requirements or delivery instructions")
+
+
+        uploaded_file = st.file_uploader("Upload a screenshot", type=["png", "jpg", "jpeg"])
+
+        if uploaded_file is not None:
+            image = Image.open(uploaded_file)
+            st.image(image, caption="Uploaded Screenshot", use_column_width=True)
 
         st.markdown("---")
         st.markdown("* Required fields")
