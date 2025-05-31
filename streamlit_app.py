@@ -64,12 +64,9 @@ def main():
     )
     selected_days = [date_map[label] for label in selected_date_labels]
 
-    with st.form('tiffin_form'):
-        # Per-date tiffin options
-        per_date_tiffin = {}
-        full_price = 120
-        half_price = 70
-        if selected_days:
+    per_date_tiffin = {}
+
+    if selected_days:
             st.markdown("### Tiffin Preferences for Each Date")
             for date_info in selected_days:
                 with st.container():
@@ -122,6 +119,39 @@ def main():
                         'dessert_choice': dessert_choice
                     }
         
+        
+
+    with st.form('tiffin_form'):
+        # Per-date tiffin options
+        full_price = 120
+        half_price = 70
+        
+
+        # Calculate live total price
+        total_tiffin_price = 0
+        tiffin_details = []
+        if selected_days:
+            for date_info in selected_days:
+                pd = per_date_tiffin.get(date_info['full_date'], {})
+                half_tiffin_count = pd.get('half_tiffin_count', 0)
+                full_tiffin_count = pd.get('full_tiffin_count', 0)
+                total_tiffin_price += half_tiffin_count * half_price + full_tiffin_count * full_price
+                tiffin_details.append(
+                    f"""
+                    {date_info['date']} ({date_info['day']}):
+                    {half_tiffin_count} half tiffins,
+                    {full_tiffin_count} full tiffins,
+                    Zero masala tiffin: {pd.get('zero_masala_tiffin', False)},
+                    Bread choice: {pd.get('bread_choice', 'NA')},
+                    Dessert choice: {pd.get('dessert_choice', 'NA')}
+                    """
+                )
+
+        #total_dessert_price = sum(d['quantity'] * d['price'] for d in selected_desserts.values())
+        #total_price = total_tiffin_price + total_dessert_price
+
+        st.info(f"**Total Price (so far): ₹{total_tiffin_price}**")
+
         col1, col2 = st.columns(2)
 
         with col1:
@@ -143,6 +173,7 @@ def main():
 
         st.markdown("---")
         st.markdown("* Required fields")
+
         submitted = st.form_submit_button('Submit Order')
 
     if submitted:
@@ -164,32 +195,6 @@ def main():
         if missing_fields:
             st.error(f'Please fill all required fields marked with *: {", ".join(missing_fields)}')
         else:
-            # Calculate total price
-            total_tiffin_price = 0
-            tiffin_details = []
-            for date_info in selected_days:
-                pd = per_date_tiffin[date_info['full_date']]
-                half_tiffin_count = pd['half_tiffin_count']
-                full_tiffin_count = pd['full_tiffin_count']
-                zero_masala_tiffin = pd['zero_masala_tiffin']
-                bread_choice = pd['bread_choice']
-                dessert_choice = pd['dessert_choice']
-                #tiffin_type = pd['tiffin_type']
-                #tiffins = pd['tiffins']
-                total_tiffin_price += half_tiffin_count * half_price + full_tiffin_count * full_price
-                tiffin_details.append(
-                    f"""
-                    {date_info['date']} ({date_info['day']}):
-                    {half_tiffin_count} half tiffins,
-                    {full_tiffin_count} full tiffins,
-                    Zero masala tiffin: {zero_masala_tiffin},
-                    Bread choice: {bread_choice},
-                    Dessert choice: {dessert_choice}
-                    """
-                )
-            total_dessert_price = sum(d['quantity'] * d['price'] for d in selected_desserts.values())
-            total_price = total_tiffin_price + total_dessert_price
-            
             # Prepare data
             data = {
                 'Timestamp': datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
@@ -197,9 +202,8 @@ def main():
                 'Contact Number': contact,
                 'Address': address,
                 'Tiffin Details': '; '.join(tiffin_details),
-                'Desserts': ', '.join([f"{dessert} x {details['quantity']}" for dessert, details in selected_desserts.items()]) if selected_desserts else 'None',
                 'Special Instructions': instructions,
-                'Total Price': total_price
+                'Total Price': total_tiffin_price
             }
 
             append_to_gsheet(data)
