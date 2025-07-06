@@ -4,3 +4,4 @@ gspread
 google-auth
 pyyaml
 pillow
+st-gsheets-connection
