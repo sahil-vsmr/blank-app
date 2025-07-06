@@ -1,9 +1,7 @@
 from datetime import datetime, timedelta
 import streamlit as st
-from streamlit_gsheets import GSheetsConnection
 from PIL import Image
 import yaml
-# import pandas as pd
 import gspread
 from google.oauth2.service_account import Credentials
 import os
@@ -61,6 +59,80 @@ def append_to_gsheet_test(data_dict, sheet_name='Sheet1'):
     row = [data_dict.get(h, "") for h in headers]
     sheet.append_row(row)
     print("Data appended to Google Sheet")
+
+def append_to_gsheet_gspread(data_dict, spreadsheet_name="TiffinOrderSheet", sheet_name='Sheet1'):
+    """
+    Append data to Google Sheets using gspread with better error handling
+    
+    Args:
+        data_dict (dict): Dictionary containing the data to append
+        spreadsheet_name (str): Name of the Google Spreadsheet
+        sheet_name (str): Name of the worksheet within the spreadsheet
+    
+    Returns:
+        bool: True if successful, False otherwise
+    """
+    try:
+        # Define the scope for Google Sheets API
+        scope = [
+            "https://spreadsheets.google.com/feeds",
+            "https://www.googleapis.com/auth/drive"
+        ]
+        
+        # Initialize credentials
+        if 'GOOGLE_APPLICATION_CREDENTIALS_JSON' in os.environ:
+            # For cloud deployment - use environment variable
+            service_account_info = json.loads(os.environ['GOOGLE_APPLICATION_CREDENTIALS_JSON'])
+            creds = Credentials.from_service_account_info(service_account_info, scopes=scope)
+        else:
+            # For local development - use service account file
+            creds = Credentials.from_service_account_file("ambient-polymer-465105-h1-aeb54163f0c7.json", scopes=scope)
+        
+        # Authorize the client
+        client = gspread.authorize(creds)
+        
+        # Open the spreadsheet
+        try:
+            spreadsheet = client.open(spreadsheet_name)
+        except gspread.SpreadsheetNotFound:
+            print(f"Error: Spreadsheet '{spreadsheet_name}' not found")
+            return False
+        
+        # Open the worksheet
+        try:
+            worksheet = spreadsheet.worksheet(sheet_name)
+        except gspread.WorksheetNotFound:
+            print(f"Error: Worksheet '{sheet_name}' not found in spreadsheet '{spreadsheet_name}'")
+            return False
+        
+        # Get headers from the first row
+        headers = worksheet.row_values(1)
+        
+        if not headers:
+            print("Error: No headers found in the first row")
+            return False
+        
+        # Prepare the row data in the correct order based on headers
+        row_data = []
+        for header in headers:
+            value = data_dict.get(header, "")
+            # Convert None to empty string
+            if value is None:
+                value = ""
+            row_data.append(str(value))
+        
+        # Append the row to the worksheet
+        worksheet.append_row(row_data)
+        
+        print(f"Successfully appended data to '{spreadsheet_name}' - '{sheet_name}'")
+        return True
+        
+    except json.JSONDecodeError as e:
+        print(f"Error parsing Google credentials JSON: {e}")
+        return False
+    except Exception as e:
+        print(f"Error appending to Google Sheets: {e}")
+        return False
 
 # def append_to_gsheet(data_dict, sheet_name='Sheet1'):
 #     conn = st.connection("gsheets", type=GSheetsConnection)
@@ -160,7 +232,6 @@ def main():
                         st.markdown(":grey_question: Menu not available for this day.")
                     bread_choices = ['Chapati', 'Bhakri']
                     ukdiche_modak_prices = ['4 - Rs. 200', '6 - Rs. 300', '8 - Rs. 400']
-                    '''# zero_masala_tiffin_check, bread_choice, dessert_choice = st.columns(3)
                 
                     # with zero_masala_tiffin_check:
                     #     zero_masala_tiffin = st.toggle(
@@ -308,7 +379,7 @@ def main():
 
             # Show loading spinner while submitting
             with st.spinner("🔄 Submitting your order to the kitchen..."):
-                if append_to_gsheet_test(data):
+                if append_to_gsheet_gspread(data):
                     st.success("✅ Order submitted successfully! Your tiffin order has been sent to the kitchen.")
                 else:
                     st.error("❌ Failed to submit order. Please try again or contact support if the problem persists.")

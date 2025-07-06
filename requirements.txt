@@ -1,7 +1,8 @@
-streamlit
+streamlit>=1.28.0
 supabase
-gspread
-google-auth
-pyyaml
-pillow
-st-gsheets-connection
+gspread>=5.12.0
+google-auth>=2.23.0
+pyyaml>=6.0
+pillow>=10.0.0
+numpy>=1.24.0
+pandas>=2.0.0
