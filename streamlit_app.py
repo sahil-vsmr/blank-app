@@ -4,6 +4,8 @@ import gspread
 from google.oauth2.service_account import Credentials
 from PIL import Image
 import yaml
+import os
+import json
 
 
 # st.title("🎈 My new app v2")
@@ -34,7 +36,16 @@ def get_week_dates():
 def append_to_gsheet(data_dict, sheet_name='Sheet1'):
     # Define the scope
     scope = ["https://spreadsheets.google.com/feeds", "https://www.googleapis.com/auth/drive"]
-    creds = Credentials.from_service_account_file("psychic-rush-459809-t8-a81dbb6aa47b.json", scopes=scope)
+    
+    # Use environment variable for cloud deployment
+    if 'GOOGLE_APPLICATION_CREDENTIALS_JSON' in os.environ:
+        # Parse JSON from environment variable
+        service_account_info = json.loads(os.environ['GOOGLE_APPLICATION_CREDENTIALS_JSON'])
+        creds = Credentials.from_service_account_info(service_account_info, scopes=scope)
+    else:
+        # Fallback to file for local development
+        creds = Credentials.from_service_account_file("psychic-rush-459809-t8-a81dbb6aa47b.json", scopes=scope)
+    
     client = gspread.authorize(creds)
     
     # Open the Google Sheet (replace with your sheet name or URL)
@@ -232,7 +243,7 @@ def main():
 
         if uploaded_file is not None:
             image = Image.open(uploaded_file)
-            st.image(image, caption="Uploaded Screenshot", use_column_width=True)
+            st.image(image, caption="Uploaded Screenshot", use_container_width=True)
 
         st.markdown("---")
         st.markdown("* Required fields")
@@ -251,10 +262,6 @@ def main():
             missing_fields.append("Dates")
         for date_info in selected_days:
             pd = per_date_tiffin.get(date_info['full_date'], {})
-            if not pd.get('half_tiffin_count'):
-                missing_fields.append(f"Tiffin Type for {date_info['date']}")
-            if not pd.get('full_tiffin_count'):
-                missing_fields.append(f"Number of Tiffins for {date_info['date']}")
         if missing_fields:
             st.error(f'Please fill all required fields marked with *: {", ".join(missing_fields)}')
         else:
