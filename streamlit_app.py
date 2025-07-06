@@ -1,6 +1,6 @@
 from datetime import datetime, timedelta
 import streamlit as st
-# from streamlit_gsheets import GSheetsConnection
+from streamlit_gsheets import GSheetsConnection
 from PIL import Image
 import yaml
 # import pandas as pd
@@ -160,7 +160,7 @@ def main():
                         st.markdown(":grey_question: Menu not available for this day.")
                     bread_choices = ['Chapati', 'Bhakri']
                     ukdiche_modak_prices = ['4 - Rs. 200', '6 - Rs. 300', '8 - Rs. 400']
-                    # zero_masala_tiffin_check, bread_choice, dessert_choice = st.columns(3)
+                    '''# zero_masala_tiffin_check, bread_choice, dessert_choice = st.columns(3)
                 
                     # with zero_masala_tiffin_check:
                     #     zero_masala_tiffin = st.toggle(
@@ -185,7 +185,7 @@ def main():
                     #         )
                     #     else:
                     #         dessert_choice = "NA"
-                    # Extra items section
+                    # Extra items section'''
                     extra_items = menu.get('extra_items', {})
                     if extra_items:
                         st.markdown('<b>Extra Items:</b>', unsafe_allow_html=True)
