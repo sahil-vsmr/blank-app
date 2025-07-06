@@ -3,7 +3,7 @@ import streamlit as st
 # from streamlit_gsheets import GSheetsConnection
 from PIL import Image
 import yaml
-import pandas as pd
+# import pandas as pd
 import gspread
 from google.oauth2.service_account import Credentials
 import os
@@ -308,7 +308,7 @@ def main():
 
             # Show loading spinner while submitting
             with st.spinner("🔄 Submitting your order to the kitchen..."):
-                if append_to_gsheet(data):
+                if append_to_gsheet_test(data):
                     st.success("✅ Order submitted successfully! Your tiffin order has been sent to the kitchen.")
                 else:
                     st.error("❌ Failed to submit order. Please try again or contact support if the problem persists.")
