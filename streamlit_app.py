@@ -1,6 +1,6 @@
 from datetime import datetime, timedelta
 import streamlit as st
-from streamlit_gsheets import GSheetsConnection
+# from streamlit_gsheets import GSheetsConnection
 from PIL import Image
 import yaml
 import pandas as pd
@@ -15,7 +15,6 @@ import json
 #     "Let's start building! For help and inspiration, head over to [docs.streamlit.io](https://docs.streamlit.io/)."
 # )
 
-conn = st.connection("gsheets", type=GSheetsConnection)
 
 
 def get_week_dates():
@@ -63,29 +62,30 @@ def append_to_gsheet_test(data_dict, sheet_name='Sheet1'):
     sheet.append_row(row)
     print("Data appended to Google Sheet")
 
-def append_to_gsheet(data_dict, sheet_name='Sheet1'):
-    data = conn.read()
-    print(data)
-    st.dataframe(data)
+# def append_to_gsheet(data_dict, sheet_name='Sheet1'):
+#     conn = st.connection("gsheets", type=GSheetsConnection)
+#     data = conn.read()
+#     print(data)
+#     st.dataframe(data)
     
-    # Check if sheet is empty
-    if data.empty:
-        print("Sheet is empty, adding data_dict...")
-        # Create DataFrame from data_dict and update the sheet
-        df = pd.DataFrame([data_dict])
-        conn.update(data=df, worksheet=sheet_name)
-        print("Data added to empty sheet")
-    else:
-        print("Sheet is not empty, appending new data...")
-        # Create DataFrame from new data_dict
-        new_df = pd.DataFrame([data_dict])
-        # Combine existing data with new data
-        combined_df = pd.concat([data, new_df], ignore_index=True)
-        # Update the sheet with combined data
-        conn.update(data=combined_df, worksheet=sheet_name)
-        print("New data appended to existing data")
-        print("Combined data:")
-        print(combined_df)
+#     # Check if sheet is empty
+#     if data.empty:
+#         print("Sheet is empty, adding data_dict...")
+#         # Create DataFrame from data_dict and update the sheet
+#         df = pd.DataFrame([data_dict])
+#         conn.update(data=df, worksheet=sheet_name)
+#         print("Data added to empty sheet")
+#     else:
+#         print("Sheet is not empty, appending new data...")
+#         # Create DataFrame from new data_dict
+#         new_df = pd.DataFrame([data_dict])
+#         # Combine existing data with new data
+#         combined_df = pd.concat([data, new_df], ignore_index=True)
+#         # Update the sheet with combined data
+#         conn.update(data=combined_df, worksheet=sheet_name)
+#         print("New data appended to existing data")
+#         print("Combined data:")
+#         print(combined_df)
 
 def load_menu(filename="day-menu.yaml"):
     with open(filename, 'r') as f:
