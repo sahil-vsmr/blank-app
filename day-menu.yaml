@@ -1,0 +1,84 @@
+defaults:
+  full_tiffin: &full_tiffin
+    items:
+      - Bhaji
+      - Chapati (3) / Bhakri (1 Big)
+      - Varan Bhat
+      - Chatni/Loncha
+    cost: 160
+  half_tiffin: &half_tiffin
+    items:
+      - Bhaji
+      - Chapati (3) / Bhakri (1 Big)
+    cost: 100
+
+extra_items:
+    Bhaji:
+        cost: 60
+    Chapati:
+        cost: 15
+    Bhakri:
+        cost: 40
+    Varan:
+        cost: 40
+        days:
+          - Monday
+          - Wednesday
+          - Friday
+    Bhat:
+        cost: 30
+        days:
+          - Monday
+          - Wednesday
+          - Friday
+    Dal Khichadi:
+        cost: 50
+        days:
+          - Tuesday
+          - Thursday
+          - Saturday
+
+
+Monday:
+  full_tiffin: *full_tiffin
+  half_tiffin: *half_tiffin
+
+Tuesday:
+  full_tiffin:
+    items:
+      - Bhaji
+      - Chapati (3) / Bhakri (1 Big)
+      - Dal khichadi
+      - Chatni/Loncha
+    cost: 160
+  half_tiffin: *half_tiffin
+
+Wednesday:
+  full_tiffin: *full_tiffin
+  half_tiffin: *half_tiffin
+
+Thursday:
+  full_tiffin:
+    items:
+      - Bhaji
+      - Chapati (3) / Bhakri (1 Big)
+      - Dal khichadi
+      - Chatni/Loncha
+    cost: 160
+  half_tiffin: *half_tiffin
+
+Saturday:
+  full_tiffin:
+    items:
+      - Bhaji
+      - Chapati (3) / Bhakri (1 Big)
+      - Dal khichadi
+      - Chatni/Loncha
+    cost: 160
+  half_tiffin: *half_tiffin
+
+Sunday:
+  full_tiffin: *full_tiffin
+  half_tiffin: *half_tiffin
+
+

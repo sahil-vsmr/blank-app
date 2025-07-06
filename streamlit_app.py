@@ -3,6 +3,7 @@ import streamlit as st
 import gspread
 from google.oauth2.service_account import Credentials
 from PIL import Image
+import yaml
 
 
 # st.title("🎈 My new app v2")
@@ -45,7 +46,15 @@ def append_to_gsheet(data_dict, sheet_name='Sheet1'):
     sheet.append_row(row)
     print("Data appended to Google Sheet")
 
-    
+def load_menu(filename="day-menu.yaml"):
+    with open(filename, 'r') as f:
+        menu_raw = yaml.safe_load(f)
+    # Handle duplicate days: keep only the first occurrence for each day
+    menu = {}
+    for day, items in menu_raw.items():
+        if day not in menu:
+            menu[day] = items
+    return menu
 
 def main():
 
@@ -64,6 +73,8 @@ def main():
     )
     selected_days = [date_map[label] for label in selected_date_labels]
 
+    menu = load_menu()
+
     per_date_tiffin = {}
 
     if selected_days:
@@ -71,52 +82,99 @@ def main():
             for date_info in selected_days:
                 with st.container():
                     st.markdown(f"**{date_info['date']} ({date_info['day']})**")
+                    day_menu = menu.get(date_info['day'], None)
+                    # 2x2 grid for tiffin menus and inputs
+                    if day_menu:
+                        grid_cols = st.columns(2)
+                        # First row: menus
+                        with grid_cols[0]:
+                            if 'full_tiffin' in day_menu:
+                                st.markdown(f"<b>Full Tiffin (₹{day_menu['full_tiffin']['cost']}):</b>", unsafe_allow_html=True)
+                                st.markdown("\n".join([f"- {item}" for item in day_menu['full_tiffin']['items']]))
+                        with grid_cols[1]:
+                            if 'half_tiffin' in day_menu:
+                                st.markdown(f"<b>Half Tiffin (₹{day_menu['half_tiffin']['cost']}):</b>", unsafe_allow_html=True)
+                                st.markdown("\n".join([f"- {item}" for item in day_menu['half_tiffin']['items']]))
+                        # Second row: number inputs
+                        grid_cols2 = st.columns(2)
+                        with grid_cols2[0]:
+                            if 'full_tiffin' in day_menu:
+                                full_tiffin_count = st.number_input(
+                                    f"Number of Full Tiffins for {date_info['date']}",
+                                    min_value=0, max_value=20, step=1,
+                                    key=f"full_tiffins_{date_info['full_date']}"
+                                )
+                            else:
+                                full_tiffin_count = 0
+                        with grid_cols2[1]:
+                            if 'half_tiffin' in day_menu:
+                                half_tiffin_count = st.number_input(
+                                    f"Number of Half Tiffins for {date_info['date']}",
+                                    min_value=0, max_value=20, step=1,
+                                    key=f"half_tiffins_{date_info['full_date']}"
+                                )
+                            else:
+                                half_tiffin_count = 0
+                    else:
+                        st.markdown(":grey_question: Menu not available for this day.")
                     bread_choices = ['Chapati', 'Bhakri']
                     ukdiche_modak_prices = ['4 - Rs. 200', '6 - Rs. 300', '8 - Rs. 400']
-                    half_tiffin_count_col, full_tiffin_count_col, zero_masala_tiffin_check, bread_choice, dessert_choice = st.columns(5)
-                    with half_tiffin_count_col:
-                        half_tiffin_count = st.number_input(
-                            f"Number of Half Tiffins for {date_info['date']}",
-                            min_value=0, max_value=20, step=1,
-                            key=f"half_tiffins_{date_info['full_date']}",
-                            help="Half Tiffin includes: 2 rotis, 1 sabzi, dal, and rice."
-                        )
-                    with full_tiffin_count_col:
-                        full_tiffin_count = st.number_input(
-                            f"Number of Full Tiffins for {date_info['date']}",
-                            min_value=0, max_value=20, step=1,
-                            key=f"full_tiffins_{date_info['full_date']}",
-                            help="Full Tiffin includes: 4 rotis, 2 sabzis, dal, rice, salad, and pickle."
-                        )
-                    with zero_masala_tiffin_check:
-                        zero_masala_tiffin = st.toggle(
-                            f"Want Zero Masala Tiffin?",
-                            value=False,
-                            key=f"zero_masala_tiffin_{date_info['full_date']}"
-                        )
-                    with bread_choice: 
-                        bread_choice = st.selectbox(
-                            f"Choose an option for bread",
-                            options=bread_choices,
-                            key=f"bread_choice_{date_info['full_date']}",
-                            help="Chapati includes: 2 rotis, 1 sabzi, dal, and rice."
-                        )
-                    with dessert_choice:
-                        if 'Friday' in date_info['day']:
-                            dessert_choice = st.selectbox(
-                                f"Ukdiche Modak (Pcs.)",
-                                options=ukdiche_modak_prices,
-                                key=f"dessert_choice_{date_info['full_date']}",
-                                help="Choose an option for dessert",
-                            )
-                        else:
-                            dessert_choice = "NA"
+                    # zero_masala_tiffin_check, bread_choice, dessert_choice = st.columns(3)
+                
+                    # with zero_masala_tiffin_check:
+                    #     zero_masala_tiffin = st.toggle(
+                    #         f"Want Zero Masala Tiffin?",
+                    #         value=False,
+                    #         key=f"zero_masala_tiffin_{date_info['full_date']}"
+                    #     )
+                    # with bread_choice: 
+                    #     bread_choice = st.selectbox(
+                    #         f"Choose an option for bread",
+                    #         options=bread_choices,
+                    #         key=f"bread_choice_{date_info['full_date']}",
+                    #         help="Chapati includes: 2 rotis, 1 sabzi, dal, and rice."
+                    #     )
+                    # with dessert_choice:
+                    #     if 'Friday' in date_info['day']:
+                    #         dessert_choice = st.selectbox(
+                    #             f"Ukdiche Modak (Pcs.)",
+                    #             options=ukdiche_modak_prices,
+                    #             key=f"dessert_choice_{date_info['full_date']}",
+                    #             help="Choose an option for dessert",
+                    #         )
+                    #     else:
+                    #         dessert_choice = "NA"
+                    # Extra items section
+                    extra_items = menu.get('extra_items', {})
+                    if extra_items:
+                        st.markdown('<b>Extra Items:</b>', unsafe_allow_html=True)
+                        extra_item_counts = {}
+                        extra_item_list = []
+                        for item, details in extra_items.items():
+                            # Only show item if 'days' is not present or if this day is in 'days'
+                            if not details.get('days') or date_info['day'] in details['days']:
+                                extra_item_list.append((item, details))
+                        n_cols = 3
+                        n_rows = 2
+                        for row in range(n_rows):
+                            cols = st.columns(n_cols)
+                            for col_idx in range(n_cols):
+                                item_idx = row * n_cols + col_idx
+                                if item_idx < len(extra_item_list):
+                                    item, details = extra_item_list[item_idx]
+                                    with cols[col_idx]:
+                                        qty = st.number_input(
+                                            f"{item} (₹{details['cost']} each)",
+                                            min_value=0, max_value=20, step=1,
+                                            key=f"extra_{item}_{date_info['full_date']}"
+                                        )
+                                        extra_item_counts[item] = qty
+                    else:
+                        extra_item_counts = {}
                     per_date_tiffin[date_info['full_date']] = {
-                        'half_tiffin_count': half_tiffin_count,
-                        'full_tiffin_count': full_tiffin_count,
-                        'zero_masala_tiffin': zero_masala_tiffin,
-                        'bread_choice': bread_choice,
-                        'dessert_choice': dessert_choice
+                        'half_tiffin_count': half_tiffin_count if 'half_tiffin' in day_menu else 0,
+                        'full_tiffin_count': full_tiffin_count if 'full_tiffin' in day_menu else 0,
+                        'extra_items': extra_item_counts
                     }
         
         
@@ -135,15 +193,20 @@ def main():
                 pd = per_date_tiffin.get(date_info['full_date'], {})
                 half_tiffin_count = pd.get('half_tiffin_count', 0)
                 full_tiffin_count = pd.get('full_tiffin_count', 0)
-                total_tiffin_price += half_tiffin_count * half_price + full_tiffin_count * full_price
+                # Calculate tiffin price
+                total_tiffin_price += half_tiffin_count * (menu.get(date_info['day'], {}).get('half_tiffin', {}).get('cost', 0))
+                total_tiffin_price += full_tiffin_count * (menu.get(date_info['day'], {}).get('full_tiffin', {}).get('cost', 0))
+                # Calculate extra items price
+                extra_items = pd.get('extra_items', {})
+                for item, qty in extra_items.items():
+                    item_cost = menu.get('extra_items', {}).get(item, {}).get('cost', 0)
+                    total_tiffin_price += qty * item_cost
                 tiffin_details.append(
                     f"""
                     {date_info['date']} ({date_info['day']}):
                     {half_tiffin_count} half tiffins,
                     {full_tiffin_count} full tiffins,
-                    Zero masala tiffin: {pd.get('zero_masala_tiffin', False)},
-                    Bread choice: {pd.get('bread_choice', 'NA')},
-                    Dessert choice: {pd.get('dessert_choice', 'NA')}
+                    Extra items: {', '.join([f'{item} x{qty}' for item, qty in extra_items.items() if qty > 0])}
                     """
                 )
 
