@@ -191,13 +191,19 @@ def main():
     per_date_tiffin = {}
 
     if selected_days:
-            st.markdown("### Tiffin Preferences for Each Date")
-            for date_info in selected_days:
-                with st.container():
-                    st.markdown(f"**{date_info['date']} ({date_info['day']})**")
-                    day_menu = menu.get(date_info['day'], None)
-                    # 2x2 grid for tiffin menus and inputs
-                    if day_menu:
+        st.markdown("### Tiffin Preferences for Each Date")
+        for date_info in selected_days:
+            with st.expander(f"📅 {date_info['date']} ({date_info['day']})", expanded=False):
+                day_menu = menu.get(date_info['day'], None)
+                
+                if day_menu:
+                    # Create tabs for Lunch and Dinner
+                    lunch_tab, dinner_tab = st.tabs(["🍽️ Lunch", "🌙 Dinner"])
+                    
+                    # Lunch Tab
+                    with lunch_tab:
+                        st.markdown("**Lunch Options:**")
+                        # 2x2 grid for tiffin menus and inputs
                         grid_cols = st.columns(2)
                         # First row: menus
                         with grid_cols[0]:
@@ -208,86 +214,134 @@ def main():
                             if 'half_tiffin' in day_menu:
                                 st.markdown(f"<b>Half Tiffin (₹{day_menu['half_tiffin']['cost']}):</b>", unsafe_allow_html=True)
                                 st.markdown("\n".join([f"- {item}" for item in day_menu['half_tiffin']['items']]))
+                        
                         # Second row: number inputs
                         grid_cols2 = st.columns(2)
                         with grid_cols2[0]:
                             if 'full_tiffin' in day_menu:
-                                full_tiffin_count = st.number_input(
-                                    f"Number of Full Tiffins for {date_info['date']}",
+                                lunch_full_tiffin_count = st.number_input(
+                                    f"Number of Full Tiffins for Lunch",
                                     min_value=0, max_value=20, step=1,
-                                    key=f"full_tiffins_{date_info['full_date']}"
+                                    key=f"lunch_full_tiffins_{date_info['full_date']}"
                                 )
                             else:
-                                full_tiffin_count = 0
+                                lunch_full_tiffin_count = 0
                         with grid_cols2[1]:
                             if 'half_tiffin' in day_menu:
-                                half_tiffin_count = st.number_input(
-                                    f"Number of Half Tiffins for {date_info['date']}",
+                                lunch_half_tiffin_count = st.number_input(
+                                    f"Number of Half Tiffins for Lunch",
                                     min_value=0, max_value=20, step=1,
-                                    key=f"half_tiffins_{date_info['full_date']}"
+                                    key=f"lunch_half_tiffins_{date_info['full_date']}"
                                 )
                             else:
-                                half_tiffin_count = 0
-                    else:
-                        st.markdown(":grey_question: Menu not available for this day.")
-                    bread_choices = ['Chapati', 'Bhakri']
-                    ukdiche_modak_prices = ['4 - Rs. 200', '6 - Rs. 300', '8 - Rs. 400']
-                
-                    # with zero_masala_tiffin_check:
-                    #     zero_masala_tiffin = st.toggle(
-                    #         f"Want Zero Masala Tiffin?",
-                    #         value=False,
-                    #         key=f"zero_masala_tiffin_{date_info['full_date']}"
-                    #     )
-                    # with bread_choice: 
-                    #     bread_choice = st.selectbox(
-                    #         f"Choose an option for bread",
-                    #         options=bread_choices,
-                    #         key=f"bread_choice_{date_info['full_date']}",
-                    #         help="Chapati includes: 2 rotis, 1 sabzi, dal, and rice."
-                    #     )
-                    # with dessert_choice:
-                    #     if 'Friday' in date_info['day']:
-                    #         dessert_choice = st.selectbox(
-                    #             f"Ukdiche Modak (Pcs.)",
-                    #             options=ukdiche_modak_prices,
-                    #             key=f"dessert_choice_{date_info['full_date']}",
-                    #             help="Choose an option for dessert",
-                    #         )
-                    #     else:
-                    #         dessert_choice = "NA"
-                    # Extra items section'''
-                    extra_items = menu.get('extra_items', {})
-                    if extra_items:
-                        st.markdown('<b>Extra Items:</b>', unsafe_allow_html=True)
-                        extra_item_counts = {}
-                        extra_item_list = []
-                        for item, details in extra_items.items():
-                            # Only show item if 'days' is not present or if this day is in 'days'
-                            if not details.get('days') or date_info['day'] in details['days']:
-                                extra_item_list.append((item, details))
-                        n_cols = 3
-                        n_rows = 2
-                        for row in range(n_rows):
-                            cols = st.columns(n_cols)
-                            for col_idx in range(n_cols):
-                                item_idx = row * n_cols + col_idx
-                                if item_idx < len(extra_item_list):
-                                    item, details = extra_item_list[item_idx]
-                                    with cols[col_idx]:
-                                        qty = st.number_input(
-                                            f"{item} (₹{details['cost']} each)",
-                                            min_value=0, max_value=20, step=1,
-                                            key=f"extra_{item}_{date_info['full_date']}"
-                                        )
-                                        extra_item_counts[item] = qty
-                    else:
-                        extra_item_counts = {}
+                                lunch_half_tiffin_count = 0
+                        
+                        # Extra items for lunch
+                        extra_items = menu.get('extra_items', {})
+                        if extra_items:
+                            st.markdown("**Extra Items for Lunch:**")
+                            extra_item_counts_lunch = {}
+                            extra_item_list = []
+                            for item, details in extra_items.items():
+                                # Only show item if 'days' is not present or if this day is in 'days'
+                                if not details.get('days') or date_info['day'] in details['days']:
+                                    extra_item_list.append((item, details))
+                            n_cols = 3
+                            n_rows = 2
+                            for row in range(n_rows):
+                                cols = st.columns(n_cols)
+                                for col_idx in range(n_cols):
+                                    item_idx = row * n_cols + col_idx
+                                    if item_idx < len(extra_item_list):
+                                        item, details = extra_item_list[item_idx]
+                                        with cols[col_idx]:
+                                            qty = st.number_input(
+                                                f"{item} (₹{details['cost']} each)",
+                                                min_value=0, max_value=20, step=1,
+                                                key=f"lunch_extra_{item}_{date_info['full_date']}"
+                                            )
+                                            extra_item_counts_lunch[item] = qty
+                        else:
+                            extra_item_counts_lunch = {}
+                    
+                    # Dinner Tab
+                    with dinner_tab:
+                        st.markdown("**Dinner Options:**")
+                        # 2x2 grid for tiffin menus and inputs
+                        grid_cols = st.columns(2)
+                        # First row: menus
+                        with grid_cols[0]:
+                            if 'full_tiffin' in day_menu:
+                                st.markdown(f"<b>Full Tiffin (₹{day_menu['full_tiffin']['cost']}):</b>", unsafe_allow_html=True)
+                                st.markdown("\n".join([f"- {item}" for item in day_menu['full_tiffin']['items']]))
+                        with grid_cols[1]:
+                            if 'half_tiffin' in day_menu:
+                                st.markdown(f"<b>Half Tiffin (₹{day_menu['half_tiffin']['cost']}):</b>", unsafe_allow_html=True)
+                                st.markdown("\n".join([f"- {item}" for item in day_menu['half_tiffin']['items']]))
+                        
+                        # Second row: number inputs
+                        grid_cols2 = st.columns(2)
+                        with grid_cols2[0]:
+                            if 'full_tiffin' in day_menu:
+                                dinner_full_tiffin_count = st.number_input(
+                                    f"Number of Full Tiffins for Dinner",
+                                    min_value=0, max_value=20, step=1,
+                                    key=f"dinner_full_tiffins_{date_info['full_date']}"
+                                )
+                            else:
+                                dinner_full_tiffin_count = 0
+                        with grid_cols2[1]:
+                            if 'half_tiffin' in day_menu:
+                                dinner_half_tiffin_count = st.number_input(
+                                    f"Number of Half Tiffins for Dinner",
+                                    min_value=0, max_value=20, step=1,
+                                    key=f"dinner_half_tiffins_{date_info['full_date']}"
+                                )
+                            else:
+                                dinner_half_tiffin_count = 0
+                        
+                        # Extra items for dinner
+                        if extra_items:
+                            st.markdown("**Extra Items for Dinner:**")
+                            extra_item_counts_dinner = {}
+                            extra_item_list = []
+                            for item, details in extra_items.items():
+                                # Only show item if 'days' is not present or if this day is in 'days'
+                                if not details.get('days') or date_info['day'] in details['days']:
+                                    extra_item_list.append((item, details))
+                            n_cols = 3
+                            n_rows = 2
+                            for row in range(n_rows):
+                                cols = st.columns(n_cols)
+                                for col_idx in range(n_cols):
+                                    item_idx = row * n_cols + col_idx
+                                    if item_idx < len(extra_item_list):
+                                        item, details = extra_item_list[item_idx]
+                                        with cols[col_idx]:
+                                            qty = st.number_input(
+                                                f"{item} (₹{details['cost']} each)",
+                                                min_value=0, max_value=20, step=1,
+                                                key=f"dinner_extra_{item}_{date_info['full_date']}"
+                                            )
+                                            extra_item_counts_dinner[item] = qty
+                        else:
+                            extra_item_counts_dinner = {}
+                    
+                    # Store data for both lunch and dinner
                     per_date_tiffin[date_info['full_date']] = {
-                        'half_tiffin_count': half_tiffin_count if 'half_tiffin' in day_menu else 0,
-                        'full_tiffin_count': full_tiffin_count if 'full_tiffin' in day_menu else 0,
-                        'extra_items': extra_item_counts
+                        'lunch': {
+                            'half_tiffin_count': lunch_half_tiffin_count if 'half_tiffin' in day_menu else 0,
+                            'full_tiffin_count': lunch_full_tiffin_count if 'full_tiffin' in day_menu else 0,
+                            'extra_items': extra_item_counts_lunch
+                        },
+                        'dinner': {
+                            'half_tiffin_count': dinner_half_tiffin_count if 'half_tiffin' in day_menu else 0,
+                            'full_tiffin_count': dinner_full_tiffin_count if 'full_tiffin' in day_menu else 0,
+                            'extra_items': extra_item_counts_dinner
+                        }
                     }
+                else:
+                    st.markdown(":grey_question: Menu not available for this day.")
         
         
 
@@ -297,35 +351,145 @@ def main():
         half_price = 70
         
 
-        # Calculate live total price
+        # Calculate live total price and create detailed summary
         total_tiffin_price = 0
         tiffin_details = []
+        order_summary = []
+        
         if selected_days:
             for date_info in selected_days:
                 pd = per_date_tiffin.get(date_info['full_date'], {})
-                half_tiffin_count = pd.get('half_tiffin_count', 0)
-                full_tiffin_count = pd.get('full_tiffin_count', 0)
-                # Calculate tiffin price
-                total_tiffin_price += half_tiffin_count * (menu.get(date_info['day'], {}).get('half_tiffin', {}).get('cost', 0))
-                total_tiffin_price += full_tiffin_count * (menu.get(date_info['day'], {}).get('full_tiffin', {}).get('cost', 0))
-                # Calculate extra items price
-                extra_items = pd.get('extra_items', {})
-                for item, qty in extra_items.items():
+                
+                # Lunch calculations
+                lunch_data = pd.get('lunch', {})
+                lunch_half_tiffin_count = lunch_data.get('half_tiffin_count', 0)
+                lunch_full_tiffin_count = lunch_data.get('full_tiffin_count', 0)
+                lunch_extra_items = lunch_data.get('extra_items', {})
+                
+                # Dinner calculations
+                dinner_data = pd.get('dinner', {})
+                dinner_half_tiffin_count = dinner_data.get('half_tiffin_count', 0)
+                dinner_full_tiffin_count = dinner_data.get('full_tiffin_count', 0)
+                dinner_extra_items = dinner_data.get('extra_items', {})
+                
+                # Calculate tiffin price for lunch
+                lunch_half_price = lunch_half_tiffin_count * (menu.get(date_info['day'], {}).get('half_tiffin', {}).get('cost', 0))
+                lunch_full_price = lunch_full_tiffin_count * (menu.get(date_info['day'], {}).get('full_tiffin', {}).get('cost', 0))
+                total_tiffin_price += lunch_half_price + lunch_full_price
+                
+                # Calculate tiffin price for dinner
+                dinner_half_price = dinner_half_tiffin_count * (menu.get(date_info['day'], {}).get('half_tiffin', {}).get('cost', 0))
+                dinner_full_price = dinner_full_tiffin_count * (menu.get(date_info['day'], {}).get('full_tiffin', {}).get('cost', 0))
+                total_tiffin_price += dinner_half_price + dinner_full_price
+                
+                # Calculate extra items price for lunch
+                lunch_extras_price = 0
+                for item, qty in lunch_extra_items.items():
                     item_cost = menu.get('extra_items', {}).get(item, {}).get('cost', 0)
+                    lunch_extras_price += qty * item_cost
                     total_tiffin_price += qty * item_cost
+                
+                # Calculate extra items price for dinner
+                dinner_extras_price = 0
+                for item, qty in dinner_extra_items.items():
+                    item_cost = menu.get('extra_items', {}).get(item, {}).get('cost', 0)
+                    dinner_extras_price += qty * item_cost
+                    total_tiffin_price += qty * item_cost
+                
+                # Create detailed summary for order submission
+                lunch_summary = f"Lunch: {lunch_half_tiffin_count} half, {lunch_full_tiffin_count} full"
+                dinner_summary = f"Dinner: {dinner_half_tiffin_count} half, {dinner_full_tiffin_count} full"
+                
+                lunch_extras = ', '.join([f'{item} x{qty}' for item, qty in lunch_extra_items.items() if qty > 0])
+                dinner_extras = ', '.join([f'{item} x{qty}' for item, qty in dinner_extra_items.items() if qty > 0])
+                
+                if lunch_extras:
+                    lunch_summary += f", Extras: {lunch_extras}"
+                if dinner_extras:
+                    dinner_summary += f", Extras: {dinner_extras}"
+                
                 tiffin_details.append(
-                    f"""
-                    {date_info['date']} ({date_info['day']}):
-                    {half_tiffin_count} half tiffins,
-                    {full_tiffin_count} full tiffins,
-                    Extra items: {', '.join([f'{item} x{qty}' for item, qty in extra_items.items() if qty > 0])}
-                    """
+                    f"{date_info['date']} ({date_info['day']}): {lunch_summary}; {dinner_summary}"
                 )
+                
+                # Create detailed order summary for display
+                day_total = lunch_half_price + lunch_full_price + dinner_half_price + dinner_full_price + lunch_extras_price + dinner_extras_price
+                if day_total > 0:
+                    order_summary.append({
+                        'date': f"{date_info['date']} ({date_info['day']})",
+                        'lunch': {
+                            'half': lunch_half_tiffin_count,
+                            'full': lunch_full_tiffin_count,
+                            'extras': lunch_extra_items,
+                            'price': lunch_half_price + lunch_full_price + lunch_extras_price
+                        },
+                        'dinner': {
+                            'half': dinner_half_tiffin_count,
+                            'full': dinner_full_tiffin_count,
+                            'extras': dinner_extra_items,
+                            'price': dinner_half_price + dinner_full_price + dinner_extras_price
+                        },
+                        'day_total': day_total
+                    })
 
-        #total_dessert_price = sum(d['quantity'] * d['price'] for d in selected_desserts.values())
-        #total_price = total_tiffin_price + total_dessert_price
+        # Display Order Summary
+        if order_summary:
+            st.markdown("### 📋 Order Summary")
+            st.markdown("Here's a breakdown of your selections:")
+            
+            for day_order in order_summary:
+                with st.expander(f"📅 {day_order['date']} - ₹{day_order['day_total']}", expanded=False):
+                    col1, col2 = st.columns(2)
+                    
+                    with col1:
+                        st.markdown("**🍽️ Lunch**")
+                        lunch = day_order['lunch']
+                        if lunch['half'] > 0 or lunch['full'] > 0:
+                            if lunch['half'] > 0:
+                                st.markdown(f"• Half Tiffin: {lunch['half']} × ₹{menu.get(day_order['date'].split(' (')[1].rstrip(')'), {}).get('half_tiffin', {}).get('cost', 0)} = ₹{lunch['half'] * menu.get(day_order['date'].split(' (')[1].rstrip(')'), {}).get('half_tiffin', {}).get('cost', 0)}")
+                            if lunch['full'] > 0:
+                                st.markdown(f"• Full Tiffin: {lunch['full']} × ₹{menu.get(day_order['date'].split(' (')[1].rstrip(')'), {}).get('full_tiffin', {}).get('cost', 0)} = ₹{lunch['full'] * menu.get(day_order['date'].split(' (')[1].rstrip(')'), {}).get('full_tiffin', {}).get('cost', 0)}")
+                        else:
+                            st.markdown("• No lunch ordered")
+                        
+                        # Show lunch extras
+                        lunch_extras_list = [f"{item} × {qty} × ₹{menu.get('extra_items', {}).get(item, {}).get('cost', 0)} = ₹{qty * menu.get('extra_items', {}).get(item, {}).get('cost', 0)}" 
+                                           for item, qty in lunch['extras'].items() if qty > 0]
+                        if lunch_extras_list:
+                            st.markdown("**Extra Items:**")
+                            for extra in lunch_extras_list:
+                                st.markdown(f"• {extra}")
+                        
+                        if lunch['price'] > 0:
+                            st.markdown(f"**Lunch Total: ₹{lunch['price']}**")
+                    
+                    with col2:
+                        st.markdown("**🌙 Dinner**")
+                        dinner = day_order['dinner']
+                        if dinner['half'] > 0 or dinner['full'] > 0:
+                            if dinner['half'] > 0:
+                                st.markdown(f"• Half Tiffin: {dinner['half']} × ₹{menu.get(day_order['date'].split(' (')[1].rstrip(')'), {}).get('half_tiffin', {}).get('cost', 0)} = ₹{dinner['half'] * menu.get(day_order['date'].split(' (')[1].rstrip(')'), {}).get('half_tiffin', {}).get('cost', 0)}")
+                            if dinner['full'] > 0:
+                                st.markdown(f"• Full Tiffin: {dinner['full']} × ₹{menu.get(day_order['date'].split(' (')[1].rstrip(')'), {}).get('full_tiffin', {}).get('cost', 0)} = ₹{dinner['full'] * menu.get(day_order['date'].split(' (')[1].rstrip(')'), {}).get('full_tiffin', {}).get('cost', 0)}")
+                        else:
+                            st.markdown("• No dinner ordered")
+                        
+                        # Show dinner extras
+                        dinner_extras_list = [f"{item} × {qty} × ₹{menu.get('extra_items', {}).get(item, {}).get('cost', 0)} = ₹{qty * menu.get('extra_items', {}).get(item, {}).get('cost', 0)}" 
+                                            for item, qty in dinner['extras'].items() if qty > 0]
+                        if dinner_extras_list:
+                            st.markdown("**Extra Items:**")
+                            for extra in dinner_extras_list:
+                                st.markdown(f"• {extra}")
+                        
+                        if dinner['price'] > 0:
+                            st.markdown(f"**Dinner Total: ₹{dinner['price']}**")
+                    
+                    st.markdown(f"**Day Total: ₹{day_order['day_total']}**")
+        else:
+            st.info("📋 **No orders selected yet.** Please select dates and choose your tiffin preferences above.")
 
-        st.info(f"**Total Price (so far): ₹{total_tiffin_price}**")
+        st.info(f"**Total Price: ₹{total_tiffin_price}**")
 
         col1, col2 = st.columns(2)
 
@@ -363,7 +527,11 @@ def main():
             missing_fields.append("Dates")
         for date_info in selected_days:
             pd = per_date_tiffin.get(date_info['full_date'], {})
-        if missing_fields:
+        
+        # Check minimum order value
+        if total_tiffin_price < 100:
+            st.error(f'❌ **Minimum order value is ₹100.** Your current total is ₹{total_tiffin_price}. Please add more items to your order.')
+        elif missing_fields:
             st.error(f'Please fill all required fields marked with *: {", ".join(missing_fields)}')
         else:
             # Prepare data
